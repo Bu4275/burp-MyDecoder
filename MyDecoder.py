@@ -165,22 +165,22 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, ITab, IExtensionStateList
 
         self._jLabelExample.setText(data)
 
-
     def unicodeToStr(self, data=None):
         # convert %u6E2C%u8A66 or \u6E2C\u8A66 to chinese
         if data is None:
             return r'Example: %u4E2D or \u4E2D to string'
 
-        split_chr = r'\u'
-        if re.search('^%u.*', data) is not None:
-            split_chr = '%u'
+        # Format \uXXXX
+        re_unicode = re.findall(r'\\u([0-9a-zA-Z]{4})', data)
+        for i in re_unicode:
+            data = data.replace('\\u%s' %i, unichr(int(i, 16)))
 
-        data = data.split(split_chr)[1:]
-        ret = ''
-        for c in data:
-            ret += unichr(int(c, 16))
-        return ret
+        # Format %uXXXX
+        re_unicode = re.findall(r'%u([0-9a-zA-Z]{4})', data)
+        for i in re_unicode:
+            data = data.replace(r'%u' + i, unichr(int(i, 16)))
 
+        return data
 
     def utf8ToStr(self, data=None):
         # convert %E4%B8%AD to '中'
