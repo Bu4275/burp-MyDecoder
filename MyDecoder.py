@@ -113,28 +113,29 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, ITab, IExtensionStateList
     def createMenuItems(self, invocation):
         menu = []
 
-        # Which part of the interface the user selects
+        # Message Viewer will show menu item if selected by the user
         ctx = invocation.getInvocationContext()
-
-        # Message Viewer Req will show menu item if selected by the user
-        if ctx == 0 or ctx == 2:
-          menu.append(swing.JMenuItem("Send to MyDecoder", None, actionPerformed=lambda x, inv=invocation: self.sendToMyDecoder(inv)))
-
-        return menu if menu else None
-
-    def sendToMyDecoder(self, invocation):
-        requestResponses = invocation.getSelectedMessages();
         start = invocation.getSelectionBounds()[0];
         end = invocation.getSelectionBounds()[1];
+        messages = invocation.getSelectedMessages();
         if end > start:
-            selected_content = self._helpers.bytesToString(requestResponses[0].getRequest()[start: end])
-            self._jTextAreaInputData.setText(selected_content)
-            parentTab = self._jConfigTab.getParent()
+            if (ctx == invocation.CONTEXT_MESSAGE_EDITOR_REQUEST or
+                ctx == invocation.CONTEXT_MESSAGE_VIEWER_REQUEST):
+                if end > start:
+                    selected_content = self._helpers.bytesToString(messages[0].getRequest()[start: end])
 
-            # task = self.highlightParentTab(parentTab, self._jConfigTab)
-            # thread.start_new_thread(self.highlightParentTab, (parentTab, self._jConfigTab,))
-            thread1 = self.HighlightParentTab(parentTab, self._jConfigTab)
-            thread1.start()
+            if (ctx == invocation.CONTEXT_MESSAGE_EDITOR_RESPONSE or
+                ctx == invocation.CONTEXT_MESSAGE_VIEWER_RESPONSE):
+                selected_content = self._helpers.bytesToString(messages[0].getResponse())[start: end]
+
+            menu.append(swing.JMenuItem("Send to MyDecoder", None, actionPerformed=lambda x, msg=selected_content: self.sendToMyDecoder(msg)))
+        return menu if menu else None
+
+    def sendToMyDecoder(self, msg):
+        self._jTextAreaInputData.setText(msg)
+        parentTab = self._jConfigTab.getParent()
+        thread1 = self.HighlightParentTab(parentTab, self._jConfigTab)
+        thread1.start()
 
 
     class HighlightParentTab(threading.Thread):
