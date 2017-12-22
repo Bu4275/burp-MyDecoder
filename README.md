@@ -17,3 +17,6 @@ Burp Suite Extension
 ## Add your decode function
 
 Add your function name to self._decodeTypeFunc and your label to self._decodeType
+
+## Reference
+https://github.com/nccgroup/Decoder-Improved
