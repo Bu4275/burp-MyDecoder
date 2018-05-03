@@ -17,6 +17,7 @@ import re
 import sys
 import threading
 import time
+import base64
 
 sysEncodingType = sys.getfilesystemencoding()
 
@@ -36,12 +37,16 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, ITab, IExtensionStateList
         self._decodeType = ['Unicode to Str', 
                             'UTF-8 to Str',
                             'Str to Unicode',
-                            'Str To UTF-8']
+                            'Str To UTF-8',
+                            'Base64 Eecode',
+                            'Base64 Decode']
 
         self._decodeTypeFunc = [self.unicodeToStr, 
                                 self.utf8ToStr,
                                 self.strToUnicode,
-                                self.strToUtf8]
+                                self.strToUtf8,
+                                self.base64Encode,
+                                self.base64Decode]
 
         # GUI components
         self._jLabelInput = swing.JLabel()
@@ -221,3 +226,17 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, ITab, IExtensionStateList
             ret = repr(data)[1:].replace("'", '')
 
         return ret
+
+
+    def base64Decode(self, data=None):
+        if data is None:
+            return r'Base64 Decoder'
+
+        return base64.b64decode(data).decode('utf-8')
+
+
+    def base64Encode(self, data=None):
+        if data is None:
+            return r'Base64 Encoder'
+
+        return base64.b64encode(data.encode('utf-8'))
