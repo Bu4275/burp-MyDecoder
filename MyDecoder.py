@@ -34,15 +34,13 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, ITab, IExtensionStateList
         self._jDecoderPanel.setLayout(None)
 
         # Combobox Values
-        self._decodeType = ['Unicode to Str', 
-                            'UTF-8 to Str',
+        self._decodeType = ['Convert to chniese',
                             'Str to Unicode',
                             'Str To UTF-8',
                             'Base64 Eecode',
                             'Base64 Decode']
 
-        self._decodeTypeFunc = [self.unicodeToStr, 
-                                self.utf8ToStr,
+        self._decodeTypeFunc = [self.convertToChinese,
                                 self.strToUnicode,
                                 self.strToUtf8,
                                 self.base64Encode,
@@ -170,8 +168,8 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, ITab, IExtensionStateList
 
         self._jLabelExample.setText(data)
 
-    def unicodeToStr(self, data=None):
-        # convert %u6E2C%u8A66 or \u6E2C\u8A66 to chinese
+    def convertToChinese(self, data=None):
+        # convert %u6E2C%u8A66 or \u6E2C\u8A66 or %E4%B8%AD or \xE4\xB8\xAD to chinese
         if data is None:
             return r'Example: %u4E2D or \u4E2D to string'
 
@@ -185,6 +183,15 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, ITab, IExtensionStateList
         for i in re_unicode:
             data = data.replace(r'%u' + i, unichr(int(i, 16)))
 
+        # Format %E4%B8%AD
+        re_utf8 = re.findall('(%[\w]{2}%[\w]{2}%[\w]{2})', data)
+        for i in re_utf8:
+            data = data.replace(i, self.utf8ToStr(i))
+
+        # Format \xE4\xB8\xAD 
+        re_utf8 = re.findall(r'(\\x[\w]{2}\\x[\w]{2}\\x[\w]{2})', data)
+        for i in re_utf8:
+            data = data.replace(i, self.utf8ToStr(i))
         return data
 
     def utf8ToStr(self, data=None):
