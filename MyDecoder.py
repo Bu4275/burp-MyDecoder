@@ -18,6 +18,7 @@ import sys
 import threading
 import time
 import base64
+import urllib
 
 sysEncodingType = sys.getfilesystemencoding()
 
@@ -228,9 +229,9 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, ITab, IExtensionStateList
             return r'Example: String to %e4%b8%ad format'
         ret = ''
         if self._jCheckBoxOutputFormat.isSelected():
-            ret = repr(data)[1:].replace("'", '').replace(r'\x', '%')
+            ret = urllib.quote(data.encode('utf-8')).replace(r'%', r'\x')
         else:
-            ret = repr(data)[1:].replace("'", '')
+            ret = urllib.quote(data.encode('utf-8'))
 
         return ret
 
